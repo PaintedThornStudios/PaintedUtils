@@ -1,0 +1,44 @@
+ManifestFileVersion: 0
+CRC: 2174041548
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: c15d47471f4c68e88629955917f8c312
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 1f75d47f0e53c4614bc4e4dff88b4cef
+  IncrementalBuildHash:
+    serializedVersion: 2
+    Hash: c15d47471f4c68e88629955917f8c312
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 83
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: -675339968, guid: b325e1460ed21f2419fca1811246b16a, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 198
+  Script: {instanceID: 0}
+- Class: 199
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers:
+- AssemblyName: PaintedUtils
+  ClassName: PaintedUtils.Rarity/Sound
+Assets:
+- Assets/Mods/Painted-PaintedUtils/Resources/ParticleEffects/ItemLootBeam - Purple.prefab
+- Assets/Mods/Painted-PaintedUtils/Resources/ParticleEffects/ItemLootBeam - Yellow.prefab
+- Assets/Mods/Painted-PaintedUtils/Resources/Rarities/Legendary.asset
+Dependencies: []

@@ -1,0 +1,22 @@
+# Unity build folders
+[Bb]in/
+[Oo]bj/
+[Pp]lugins/
+/.idea/.idea.PaintedUtils/.idea/.name
+/.idea/.idea.PaintedUtils/.idea/.gitignore
+/.idea/.gitignore
+/.idea/.idea.PaintedUtils/.idea/encodings.xml
+/.idea/.idea.PaintedUtils/.idea/indexLayout.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/.idea.PaintedUtils/.idea/vcs.xml
+/.idea/vcs.xml
+/.idea/paintedutils.iml
+AssetBundles/AssetBundles
+AssetBundles/AssetBundles.manifest
+bin/Debug/netstandard2.1/PaintedUtils.dll
+bin/Debug/netstandard2.1/PaintedUtils.pdb
+obj/Debug/netstandard2.1/PaintedUtils.AssemblyInfo.cs
+obj/Debug/netstandard2.1/PaintedUtils.AssemblyInfoInputs.cache
+obj/Debug/netstandard2.1/PaintedUtils.dll
+obj/Debug/netstandard2.1/PaintedUtils.pdb 

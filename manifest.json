@@ -1,0 +1,10 @@
+{
+  "name": "PaintedUtils",
+  "author": "PatinedThron Studios",
+  "description": "Utility functions for the game.",
+  "version_number": "1.0.0",
+  "dependencies": [
+    "Zehs-REPOLib-2.0.1"
+  ],
+  "website_url": ""
+} 
