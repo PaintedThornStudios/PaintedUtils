@@ -1,15 +1,15 @@
 ManifestFileVersion: 0
-CRC: 2174041548
+CRC: 1964451479
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: c15d47471f4c68e88629955917f8c312
+    Hash: 5c9c40ad2829a0f5a73edaf505afffee
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 1f75d47f0e53c4614bc4e4dff88b4cef
+    Hash: 6682ca3873580f438b65b2ede2b11c8f
   IncrementalBuildHash:
     serializedVersion: 2
-    Hash: c15d47471f4c68e88629955917f8c312
+    Hash: 5c9c40ad2829a0f5a73edaf505afffee
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -25,7 +25,7 @@ ClassTypes:
 - Class: 83
   Script: {instanceID: 0}
 - Class: 114
-  Script: {fileID: -675339968, guid: b325e1460ed21f2419fca1811246b16a, type: 3}
+  Script: {fileID: -675339968, guid: 87107e2d1131dc7488e54349bc78c538, type: 3}
 - Class: 115
   Script: {instanceID: 0}
 - Class: 198
@@ -38,7 +38,8 @@ SerializeReferenceClassIdentifiers:
 - AssemblyName: PaintedUtils
   ClassName: PaintedUtils.Rarity/Sound
 Assets:
-- Assets/Mods/Painted-PaintedUtils/Resources/ParticleEffects/ItemLootBeam - Purple.prefab
-- Assets/Mods/Painted-PaintedUtils/Resources/ParticleEffects/ItemLootBeam - Yellow.prefab
-- Assets/Mods/Painted-PaintedUtils/Resources/Rarities/Legendary.asset
+- Assets/Mods/PaintedThornStudios-PaintedUtils/Resources/Rarities/Rare.asset
+- Assets/Mods/PaintedThornStudios-PaintedUtils/Resources/Rarities/Common.asset
+- Assets/Mods/PaintedThornStudios-PaintedUtils/Resources/ParticleEffects/ItemLootBeam.prefab
+- Assets/Mods/PaintedThornStudios-PaintedUtils/Resources/Rarities/Legendary.asset
 Dependencies: []

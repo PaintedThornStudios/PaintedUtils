@@ -7,7 +7,7 @@
     <Version>1.0.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
-    <Authors>Painted</Authors>
+    <Authors>PaintedThornStudios</Authors>
     <GameDirectory>A:\SteamLibrary\steamapps\common\REPO</GameDirectory>
     <BepInExDirectory>D:\Games\Gale\repo\profiles\Test\BepInEx\</BepInExDirectory>
     <StartArguments>--doorstop-enable true --doorstop-target "$(BepInExDirectory)core\BepInEx.Preloader.dll" --gale-profile Test</StartArguments>
@@ -53,6 +53,7 @@
       <DistributionFolder>D:\Games\Gale\repo\profiles\Test\BepInEx\plugins\$(Authors)-$(AssemblyName)</DistributionFolder>
       <DevelopmentDistributionFolder>D:\Games\Unity\ModDevelopmentRepo\Assets\REPO\Mods\plugins\$(Authors)-$(AssemblyName)</DevelopmentDistributionFolder>
       <UnityFolder>D:\Games\Unity\ModDevelopmentRepo\Assets\Mods\$(Authors)-$(AssemblyName)</UnityFolder>
+      <ThunderstoreBuildFolder>.\dist</ThunderstoreBuildFolder>
     </PropertyGroup>
 
     <!-- Create the distribution folder -->
@@ -73,6 +74,23 @@
     <Copy
       SourceFiles="$(TargetPath)"
       DestinationFolder="$(UnityFolder)"
+      SkipUnchangedFiles="true" />
+      
+    <Copy
+      SourceFiles="$(TargetPath)"
+      DestinationFolder="$(ThunderstoreBuildFolder)"
+      SkipUnchangedFiles="true" />
+
+    <!-- Copy the asset bundle to dist folder -->
+    <Copy
+      SourceFiles="AssetBundles\$(AssemblyName).bundle"
+      DestinationFolder="$(ThunderstoreBuildFolder)"
+      SkipUnchangedFiles="true" />
+
+    <!-- Copy the changelog to dist folder -->
+    <Copy
+      SourceFiles="changelog.md"
+      DestinationFolder="$(ThunderstoreBuildFolder)"
       SkipUnchangedFiles="true" />
 
     <!-- Copy and rename the asset bundle if it exists (excluding manifest) -->

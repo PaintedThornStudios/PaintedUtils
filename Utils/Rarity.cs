@@ -7,6 +7,8 @@ namespace PaintedUtils
     {
         public string rarityName;
         public ParticleSystem spawnEffect;
+        public bool overrideEffectColor = false;
+        public Color overrideColor = Color.white;
         public Sound spawnSound;
         public Color uiColor = Color.white;
         public Sprite icon;

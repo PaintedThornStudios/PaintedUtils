@@ -1,0 +1,30 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "PaintedThornStudios"
+name = "PaintedUtils"
+versionNumber = "1.0.0"
+description = "Utilities for mods by PaintedThornStudios"
+websiteUrl = ""
+containsNsfwContent = false
+[package.dependencies]
+Zehs-REPOLib = "2.0.1"
+DaXcess-FixPluginTypesSerialization = "1.0.0"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "./build"
+
+[[build.copy]]
+source = "./dist"
+target = ""
+
+[publish]
+repository = "https://thunderstore.io"
+communities = [ "repo", ]
+[publish.categories]
+repo = [ "utility", ]
+
+

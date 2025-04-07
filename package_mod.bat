@@ -12,7 +12,7 @@ for /f "tokens=2 delims=:" %%a in ('type manifest.json ^| findstr "name"') do (
 )
 
 :: Set author
-set "author=Painted"
+set "author=PaintedThornStudios"
 
 :: Create output directory if it doesn't exist
 if not exist "D:\Games\Unity\RepoMods\BuiltMods" mkdir "D:\Games\Unity\RepoMods\BuiltMods"
