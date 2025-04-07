@@ -24,7 +24,7 @@ namespace PaintedUtils
         public static void UIItemInfoText(IItemAttributes itemAttributes, string promptText)
         {
             // This would ideally be implemented via a delegate or event system
-            Debug.Log($"[UIItemInfoText] {itemAttributes.GetDisplayName()}: {promptText}");
+            // Debug.Log($"[UIItemInfoText] {itemAttributes.GetDisplayName()}: {promptText}");
         }
     }
 
@@ -62,7 +62,9 @@ namespace PaintedUtils
             {
                 battery = GetComponent<ItemBattery>();
                 if (battery == null)
-                    Debug.LogWarning($"{name}: 'useBattery' is enabled but no ItemBattery found.");
+                {
+                    // Debug.LogWarning($"{name}: 'useBattery' is enabled but no ItemBattery found.");
+                }
             }
         }
 

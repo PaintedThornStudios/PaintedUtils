@@ -53,25 +53,6 @@ namespace PaintedUtils
             }
         }
 
-        private void LoadNetworkPrefabsFromResources()
-        {
-            if (_assetBundle == null) return;
-
-            var networkPrefabs = _assetBundle.GetAllAssetNames()
-                .Where(name => name.Contains("/items/") && name.EndsWith(".prefab"))
-                .Select(name => _assetBundle.LoadAsset<GameObject>(name))
-                .ToList();  
-
-            foreach (var prefab in networkPrefabs)
-            {
-                REPOLib.Modules.NetworkPrefabs.RegisterNetworkPrefab(prefab);
-            }
-
-            if (networkPrefabs.Count > 0)
-            {
-                Logger.LogInfo($"Successfully registered {networkPrefabs.Count} network prefabs through REPOLib");
-            }                
-        }
 
         private void FixAllPrefabAudioMixerGroups()
         {
@@ -98,9 +79,9 @@ namespace PaintedUtils
             Patch();
 
             LoadAssetBundle();
-            LoadNetworkPrefabsFromResources();
 
             Logger.LogInfo($"{Info.Metadata.GUID} v{Info.Metadata.Version} has loaded!");
+            Logger.LogInfo($"White Roses have been painted Red! @CarsonJF");
         }
 
         internal void Patch()

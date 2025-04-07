@@ -36,16 +36,16 @@ namespace PaintedUtils
         {
             if (dropTable == null)
             {
-                Debug.Log($"Attempting to load drop table from: {dropTableResourcePath}");
+                // Debug.Log($"Attempting to load drop table from: {dropTableResourcePath}");
                 dropTable = Resources.Load<DropTable>(dropTableResourcePath);
                 
                 if (dropTable != null)
                 {
-                    Debug.Log($"Successfully loaded drop table: {dropTable.name}");
+                    // Debug.Log($"Successfully loaded drop table: {dropTable.name}");
                 }
                 else
                 {
-                    Debug.LogWarning($"Failed to load drop table from path: {dropTableResourcePath}");
+                    // Debug.LogWarning($"Failed to load drop table from path: {dropTableResourcePath}");
                 }
             }
         }
@@ -81,7 +81,7 @@ namespace PaintedUtils
                 InitializeDropTable(path);
                 if (dropTable != null)
                 {
-                    Debug.Log($"Successfully auto-loaded drop table from: {path}");
+                    // Debug.Log($"Successfully auto-loaded drop table from: {path}");
                     return;
                 }
             }
@@ -97,7 +97,7 @@ namespace PaintedUtils
             if (dropper == null)
             {
                 dropper = targetObject.AddComponent<ItemDropper>();
-                Debug.Log($"Added ItemDropper component to {targetObject.name}");
+                // Debug.Log($"Added ItemDropper component to {targetObject.name}");
             }
 
             // Initialize the drop table
@@ -110,7 +110,7 @@ namespace PaintedUtils
                 typeof(ItemDropper).GetField("dropSpreadRadius", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(dropper, spreadRadius);
                 typeof(ItemDropper).GetField("forceStrength", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(dropper, force);
                 
-                Debug.Log($"Configured ItemDropper on {targetObject.name} with spread radius {spreadRadius} and force {force}");
+                // Debug.Log($"Configured ItemDropper on {targetObject.name} with spread radius {spreadRadius} and force {force}");
             }
             
             return dropper;
@@ -136,7 +136,7 @@ namespace PaintedUtils
                 }
             }
 
-            Debug.Log($"Static DropItemsAtPosition executing with drop table: {dropTable.name}");
+            // Debug.Log($"Static DropItemsAtPosition executing with drop table: {dropTable.name}");
             
             // Guaranteed Drops
             if (dropTable.guaranteedDrops != null)
@@ -196,7 +196,7 @@ namespace PaintedUtils
         // Another static method to drop items at a position, looking up a table by name
         public static void DropItemsAtPosition(string dropTableResourcePath, Vector3 position, float dropRadius = 0.5f, float force = 3f)
         {
-            Debug.Log($"Attempting to drop items with table from path: {dropTableResourcePath}");
+            // Debug.Log($"Attempting to drop items with table from path: {dropTableResourcePath}");
             DropTable table = Resources.Load<DropTable>(dropTableResourcePath);
             DropItemsAtPosition(table, position, dropRadius, force);
         }
@@ -216,7 +216,7 @@ namespace PaintedUtils
             {
                 // Use the component's drop table and settings
                 DropItemsAtPosition(dropper.DropTable, sourceObject.transform.position, dropper.DropSpreadRadius, dropper.ForceStrength);
-                Debug.Log($"Dropped items for {sourceObject.name} using its ItemDropper component");
+                // Debug.Log($"Dropped items for {sourceObject.name} using its ItemDropper component");
                 return;
             }
             
@@ -224,7 +224,7 @@ namespace PaintedUtils
             if (!string.IsNullOrEmpty(dropTableResourcePath))
             {
                 DropItemsAtPosition(dropTableResourcePath, sourceObject.transform.position);
-                Debug.Log($"Dropped items for {sourceObject.name} using resource path: {dropTableResourcePath}");
+                // Debug.Log($"Dropped items for {sourceObject.name} using resource path: {dropTableResourcePath}");
                 return;
             }
             
@@ -276,7 +276,7 @@ namespace PaintedUtils
 
         public void DropItems()
         {
-            Debug.Log($"DropItems called on {gameObject.name}. Drop table is {(dropTable == null ? "NULL" : "assigned")}");
+            // Debug.Log($"DropItems called on {gameObject.name}. Drop table is {(dropTable == null ? "NULL" : "assigned")}");
             
             // Use the static method if this object might be destroyed
             if (gameObject.activeInHierarchy)
@@ -298,7 +298,7 @@ namespace PaintedUtils
 
         private void Awake()
         {
-            Debug.Log($"Awake on {gameObject.name}. Drop table is {(dropTable == null ? "NULL" : dropTable.name)}");
+            // Debug.Log($"Awake on {gameObject.name}. Drop table is {(dropTable == null ? "NULL" : dropTable.name)}");
             
             // Try to auto-initialize the drop table if none is set
             if (dropTable == null)
@@ -310,7 +310,7 @@ namespace PaintedUtils
         // Method to handle drops when the object is despawned
         public void OnDespawn()
         {
-            Debug.Log($"OnDespawn called for {gameObject.name}");
+            // Debug.Log($"OnDespawn called for {gameObject.name}");
             DropItems();
         }
 
@@ -323,9 +323,9 @@ namespace PaintedUtils
                 return;
             }
 
-            Debug.Log($"DropItemsMethod executing with drop table: {dropTable.name}");
-            Debug.Log($"Guaranteed drops: {(dropTable.guaranteedDrops == null ? "NULL" : dropTable.guaranteedDrops.Count.ToString())}");
-            Debug.Log($"Weighted drops: {(dropTable.drops == null ? "NULL" : dropTable.drops.Count.ToString())}");
+            // Debug.Log($"DropItemsMethod executing with drop table: {dropTable.name}");
+            // Debug.Log($"Guaranteed drops: {(dropTable.guaranteedDrops == null ? "NULL" : dropTable.guaranteedDrops.Count.ToString())}");
+            // Debug.Log($"Weighted drops: {(dropTable.drops == null ? "NULL" : dropTable.drops.Count.ToString())}");
 
             Vector3 basePosition = dropTarget ? dropTarget.position : transform.position;
 
