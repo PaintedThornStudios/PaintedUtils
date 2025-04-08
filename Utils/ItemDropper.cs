@@ -152,6 +152,20 @@ namespace PaintedUtils
                 }
             }
 
+            // Check for nested tables
+            if (dropTable.nestedTables != null && dropTable.nestedTables.Count > 0)
+            {
+                if (Random.Range(0, 100) < dropTable.nestedTableChance)
+                {
+                    int nestedIndex = Random.Range(0, dropTable.nestedTables.Count);
+                    DropTable nestedTable = dropTable.nestedTables[nestedIndex];
+                    if (nestedTable != null)
+                    {
+                        DropItemsAtPosition(nestedTable, position, dropRadius, force);
+                    }
+                }
+            }
+
             // Weighted Drops
             if (dropTable.drops != null && dropTable.drops.Count > 0)
             {

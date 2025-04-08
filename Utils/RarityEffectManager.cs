@@ -19,36 +19,41 @@ namespace PaintedUtils
                 // Apply color override if enabled
                 if (rarity.overrideEffectColor)
                 {
-                    ApplyColorOverrideToEffect(go.gameObject);
+                    ApplyColorOverrideToEffect(go.gameObject, rarity);
+                }
+
+                // If the effect should be disabled on grab, add the necessary components
+                if (rarity.disableEffectOnGrab && parent != null)
+                {
+                    var tracker = parent.gameObject.AddComponent<RarityEffectTracker>();
+                    tracker.effectHandle = handle;
+                    
+                    // Add the grab effect handler if the object can be grabbed
+                    if (parent.gameObject.GetComponent<PhysGrabObject>() != null)
+                    {
+                        parent.gameObject.AddComponent<RarityGrabEffectHandler>();
+                    }
                 }
             }
 
-            if (rarity.spawnSound != null)
+            if (rarity.spawnSound != null && rarity.spawnSound.clip != null)
             {
-                // Note: This cannot be stopped manually — PlayClipAtPoint uses a one-shot AudioSource.
-                AudioSource.PlayClipAtPoint(rarity.spawnSound.clip, position);
+                rarity.InitializeAudioSource(handle.particleGameObject);
             }
 
             return handle;
         }
 
-        public static void ApplyColorOverrideToEffect(GameObject targetEffectInstance)
+        private static void ApplyColorOverrideToEffect(GameObject targetEffectInstance, Rarity rarity)
         {
-            if (targetEffectInstance == null) return;
+            if (targetEffectInstance == null || rarity == null) return;
 
             // Find all ParticleSystems in the object and children
             ParticleSystem[] systems = targetEffectInstance.GetComponentsInChildren<ParticleSystem>(true);
             foreach (var ps in systems)
             {
                 var main = ps.main;
-                // Get the rarity component from the root object or parent hierarchy
-                var rarity = targetEffectInstance.GetComponent<Rarity>();
-                if (rarity == null && targetEffectInstance.transform.parent != null)
-                {
-                    rarity = targetEffectInstance.transform.parent.GetComponent<Rarity>();
-                }
-
-                if (rarity != null && rarity.overrideEffectColor)
+                if (rarity.overrideEffectColor)
                 {
                     main.startColor = rarity.overrideColor;
                 }

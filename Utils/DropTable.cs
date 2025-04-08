@@ -8,5 +8,8 @@ namespace PaintedUtils
     {
         public List<ItemDropper.ItemDrop> guaranteedDrops;
         public List<ItemDropper.ItemDrop> drops;
+        public List<DropTable> nestedTables;
+        [Range(0, 100)]
+        public int nestedTableChance = 50; // Percentage chance to roll a nested table
     }
 } 

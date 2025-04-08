@@ -20,9 +20,9 @@ namespace PaintedUtils
     /// - ItemLibrary: Standard implementation for interactive items
     /// - ItemBattery: Battery power system for electronic items
     /// </summary>
+    /// 
     [BepInPlugin("PaintedThornStudios.PaintedUtils", "PaintedUtils", "1.0")]
     [BepInDependency(REPOLib.MyPluginInfo.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
-    [BepInDependency("DaXcess-FixPluginTypesSerialization-1.0.0", BepInDependency.DependencyFlags.HardDependency)]
     public class PaintedUtils : BaseUnityPlugin
     {
         private static string GetModName()
