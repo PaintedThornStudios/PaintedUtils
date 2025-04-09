@@ -12,7 +12,7 @@ PaintedUtils is a growing collection of Unity components and utilities that aim 
 
 The mod is under active development and will be expanded with new features and documentation over time. 
 
-Depends on REPOLib
+Depends on REPOLib.
 
 
 ## Contact Me!
