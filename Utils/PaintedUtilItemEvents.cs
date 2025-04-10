@@ -98,7 +98,7 @@ namespace PaintedUtils
             if (grabber == null) return false;
 
             // Check if this object is the one being looked at
-            if (grabber.currentlyLookingAt != grabObject) return false;
+            if (grabber.currentlyLookingAtPhysGrabObject != grabObject) return false;
 
             // Check if within grab range
             float distance = Vector3.Distance(grabber.transform.position, transform.position);

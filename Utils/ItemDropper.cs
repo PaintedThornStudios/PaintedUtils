@@ -6,14 +6,21 @@ namespace PaintedUtils
     public class ItemDropper : MonoBehaviour
     {
         public enum PrefabType { NetworkPrefab, Valuable, Item }
+        public enum DropChanceType { Weight, Percentage }
 
         [System.Serializable]
         public class ItemDrop
         {
             public GameObject itemPrefab;
-            public int minQuantity;
-            public int maxQuantity;
-            public int weight;
+            public int minQuantity = 1;
+            public int maxQuantity = 1;
+            public DropChanceType dropChanceType = DropChanceType.Weight;
+            [Tooltip("Used when Drop Chance Type is set to Weight")]
+            public int weight = 100;
+            [Range(0, 100)]
+            [Tooltip("Percentage chance this item will drop. Used when Drop Chance Type is set to Percentage")]
+            public float chance = 100f;
+            public bool guaranteed = false;
             public PrefabType prefabType;
             public Rarity rarity;
         }
@@ -122,7 +129,6 @@ namespace PaintedUtils
             if (dropTable == null)
             {
                 Debug.LogWarning("Cannot drop items: No drop table provided to static method");
-                // Try to load a default drop table
                 dropTable = Resources.Load<DropTable>("DropTables/DefaultDropTable");
                 
                 if (dropTable == null)
@@ -130,18 +136,23 @@ namespace PaintedUtils
                     Debug.LogError("Failed to load fallback drop table. No items will be dropped.");
                     return;
                 }
-                else
-                {
-                    Debug.Log($"Using fallback drop table: {dropTable.name}");
-                }
             }
 
-            // Debug.Log($"Static DropItemsAtPosition executing with drop table: {dropTable.name}");
-            
-            // Guaranteed Drops
-            if (dropTable.guaranteedDrops != null)
+            // Handle all drops based on their configuration
+            foreach (var drop in dropTable.drops)
             {
-                foreach (var drop in dropTable.guaranteedDrops)
+                bool shouldDrop = false;
+
+                if (drop.guaranteed)
+                {
+                    shouldDrop = true;
+                }
+                else if (drop.dropChanceType == DropChanceType.Percentage)
+                {
+                    shouldDrop = Random.Range(0f, 100f) < drop.chance;
+                }
+
+                if (shouldDrop)
                 {
                     int quantity = Random.Range(drop.minQuantity, drop.maxQuantity + 1);
                     for (int j = 0; j < quantity; j++)
@@ -152,7 +163,47 @@ namespace PaintedUtils
                 }
             }
 
-            // Check for nested tables
+            // Handle weighted drops separately
+            List<ItemDrop> weightedDrops = dropTable.drops.FindAll(d => !d.guaranteed && d.dropChanceType == DropChanceType.Weight && d.weight > 0);
+            if (weightedDrops.Count > 0)
+            {
+                int typesToDrop = Mathf.Clamp(Random.Range(1, 3 + 1), 1, weightedDrops.Count);
+
+                for (int i = 0; i < typesToDrop; i++)
+                {
+                    if (weightedDrops.Count == 0) break;
+
+                    int totalWeight = 0;
+                    foreach (var drop in weightedDrops)
+                        totalWeight += drop.weight;
+
+                    int randomWeight = Random.Range(0, totalWeight);
+                    int current = 0;
+                    int index = 0;
+
+                    for (int k = 0; k < weightedDrops.Count; k++)
+                    {
+                        current += weightedDrops[k].weight;
+                        if (randomWeight < current)
+                        {
+                            index = k;
+                            break;
+                        }
+                    }
+
+                    ItemDrop selectedDrop = weightedDrops[index];
+                    weightedDrops.RemoveAt(index);
+
+                    int quantity = Random.Range(selectedDrop.minQuantity, selectedDrop.maxQuantity + 1);
+                    for (int j = 0; j < quantity; j++)
+                    {
+                        Vector3 pos = position + Random.insideUnitSphere * dropRadius;
+                        SpawnPrefabStatic(selectedDrop, pos, force);
+                    }
+                }
+            }
+
+            // Handle nested tables
             if (dropTable.nestedTables != null && dropTable.nestedTables.Count > 0)
             {
                 if (Random.Range(0, 100) < dropTable.nestedTableChance)
@@ -162,46 +213,6 @@ namespace PaintedUtils
                     if (nestedTable != null)
                     {
                         DropItemsAtPosition(nestedTable, position, dropRadius, force);
-                    }
-                }
-            }
-
-            // Weighted Drops
-            if (dropTable.drops != null && dropTable.drops.Count > 0)
-            {
-                List<ItemDrop> validDrops = new List<ItemDrop>(dropTable.drops);
-                int typesToDrop = Mathf.Clamp(Random.Range(1, 3 + 1), 1, validDrops.Count);
-
-                for (int i = 0; i < typesToDrop; i++)
-                {
-                    if (validDrops.Count == 0) break;
-
-                    int totalWeight = 0;
-                    foreach (var drop in validDrops)
-                        totalWeight += drop.weight;
-
-                    int randomWeight = Random.Range(0, totalWeight);
-                    int current = 0;
-                    int index = 0;
-
-                    for (int k = 0; k < validDrops.Count; k++)
-                    {
-                        current += validDrops[k].weight;
-                        if (randomWeight < current)
-                        {
-                            index = k;
-                            break;
-                        }
-                    }
-
-                    ItemDrop selectedDrop = validDrops[index];
-                    validDrops.RemoveAt(index);
-
-                    int quantity = Random.Range(selectedDrop.minQuantity, selectedDrop.maxQuantity + 1);
-                    for (int j = 0; j < quantity; j++)
-                    {
-                        Vector3 pos = position + Random.insideUnitSphere * dropRadius;
-                        SpawnPrefabStatic(selectedDrop, pos, force);
                     }
                 }
             }
@@ -290,87 +301,78 @@ namespace PaintedUtils
 
         public void DropItems()
         {
-            // Debug.Log($"DropItems called on {gameObject.name}. Drop table is {(dropTable == null ? "NULL" : "assigned")}");
-            
-            // Use the static method if this object might be destroyed
-            if (gameObject.activeInHierarchy)
-            {
-                DropItemsMethod();
-            }
-            else
-            {
-                // If the object is already inactive, use the static method
-                Vector3 position = dropTarget ? dropTarget.position : transform.position;
-                DropItemsAtPosition(dropTable, position, dropSpreadRadius, forceStrength);
-            }
-        }
-        public System.Collections.IEnumerator DropItemsCoroutine()
-        {
-            yield return null; // Wait one frame
-            DropItemsMethod();
-        }
-
-        private void Awake()
-        {
-            // Debug.Log($"Awake on {gameObject.name}. Drop table is {(dropTable == null ? "NULL" : dropTable.name)}");
-            
-            // Try to auto-initialize the drop table if none is set
             if (dropTable == null)
             {
                 InitializeDropTableFromName();
-            }
-        }
-
-        // Method to handle drops when the object is despawned
-        public void OnDespawn()
-        {
-            // Debug.Log($"OnDespawn called for {gameObject.name}");
-            DropItems();
-        }
-
-        public void DropItemsMethod()
-        {
-            // Check if dropTable is null to prevent NullReferenceException
-            if (dropTable == null)
-            {
-                Debug.LogError($"No drop table assigned to ItemDropper on {gameObject.name}. Please assign a drop table in the inspector.");
-                return;
-            }
-
-            // Debug.Log($"DropItemsMethod executing with drop table: {dropTable.name}");
-            // Debug.Log($"Guaranteed drops: {(dropTable.guaranteedDrops == null ? "NULL" : dropTable.guaranteedDrops.Count.ToString())}");
-            // Debug.Log($"Weighted drops: {(dropTable.drops == null ? "NULL" : dropTable.drops.Count.ToString())}");
-
-            Vector3 basePosition = dropTarget ? dropTarget.position : transform.position;
-
-            // Guaranteed Drops
-            foreach (var drop in dropTable.guaranteedDrops)
-            {
-                int quantity = Random.Range(drop.minQuantity, drop.maxQuantity + 1);
-                for (int j = 0; j < quantity; j++)
+                if (dropTable == null)
                 {
-                    Vector3 pos = GetSpreadPosition(basePosition);
-                    SpawnPrefab(drop, pos);
+                    Debug.LogWarning($"No drop table found for {gameObject.name}");
+                    return;
                 }
             }
 
-            // Weighted Drops
-            List<ItemDrop> validDrops = new List<ItemDrop>(dropTable.drops);
-            int typesToDrop = Mathf.Clamp(Random.Range(minItemTypes, maxItemTypes + 1), 1, validDrops.Count);
-
-            for (int i = 0; i < typesToDrop; i++)
+            // Handle all drops based on their configuration
+            foreach (var drop in dropTable.drops)
             {
-                if (validDrops.Count == 0) break;
+                bool shouldDrop = false;
 
-                int index = PickWeightedIndex(validDrops);
-                ItemDrop selectedDrop = validDrops[index];
-                validDrops.RemoveAt(index);
-
-                int quantity = Random.Range(selectedDrop.minQuantity, selectedDrop.maxQuantity + 1);
-                for (int j = 0; j < quantity; j++)
+                if (drop.guaranteed)
                 {
-                    Vector3 pos = GetSpreadPosition(basePosition);
-                    SpawnPrefab(selectedDrop, pos);
+                    shouldDrop = true;
+                }
+                else if (drop.dropChanceType == DropChanceType.Percentage)
+                {
+                    shouldDrop = Random.Range(0f, 100f) < drop.chance;
+                }
+
+                if (shouldDrop)
+                {
+                    int quantity = Random.Range(drop.minQuantity, drop.maxQuantity + 1);
+                    for (int j = 0; j < quantity; j++)
+                    {
+                        Vector3 pos = GetSpreadPosition(transform.position);
+                        SpawnPrefab(drop, pos);
+                    }
+                }
+            }
+
+            // Handle weighted drops separately
+            List<ItemDrop> weightedDrops = dropTable.drops.FindAll(d => !d.guaranteed && d.dropChanceType == DropChanceType.Weight && d.weight > 0);
+            if (weightedDrops.Count > 0)
+            {
+                int typesToDrop = Mathf.Clamp(Random.Range(minItemTypes, maxItemTypes + 1), 1, weightedDrops.Count);
+
+                for (int i = 0; i < typesToDrop; i++)
+                {
+                    if (weightedDrops.Count == 0) break;
+
+                    int index = PickWeightedIndex(weightedDrops);
+                    ItemDrop selectedDrop = weightedDrops[index];
+                    weightedDrops.RemoveAt(index);
+
+                    int quantity = Random.Range(selectedDrop.minQuantity, selectedDrop.maxQuantity + 1);
+                    for (int j = 0; j < quantity; j++)
+                    {
+                        Vector3 pos = GetSpreadPosition(transform.position);
+                        SpawnPrefab(selectedDrop, pos);
+                    }
+                }
+            }
+
+            // Handle nested tables
+            if (dropTable.nestedTables != null && dropTable.nestedTables.Count > 0)
+            {
+                if (Random.Range(0, 100) < dropTable.nestedTableChance)
+                {
+                    int nestedIndex = Random.Range(0, dropTable.nestedTables.Count);
+                    DropTable nestedTable = dropTable.nestedTables[nestedIndex];
+                    if (nestedTable != null)
+                    {
+                        var tempDropTable = dropTable;
+                        dropTable = nestedTable;
+                        DropItems();
+                        dropTable = tempDropTable;
+                    }
                 }
             }
         }
