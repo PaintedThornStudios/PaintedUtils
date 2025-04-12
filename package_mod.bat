@@ -23,12 +23,14 @@ mkdir "%tempdir%"
 
 :: Copy files to temp directory
 copy /Y "bin\Debug\netstandard2.1\%modname%.dll" "%tempdir%\"
-copy /Y "AssetBundles\*.bundle" "%tempdir%\%modname%.bundle"
 copy /Y "manifest.json" "%tempdir%\"
 copy /Y "README.md" "%tempdir%\"
 if exist "icon.png" copy /Y "icon.png" "%tempdir%\"
 if exist "CHANGELOG.md" copy /Y "CHANGELOG.md" "%tempdir%\"
 
+for %%f in ("AssetBundles\*.bundle") do (
+    copy /Y "%%f" "%tempdir%\%%~nxf"
+)
 :: Create zip file
 powershell Compress-Archive -Path "%tempdir%\*" -DestinationPath "D:\Games\Unity\RepoMods\BuiltMods\%author%-%modname%-%version%.zip" -Force
 

@@ -2,7 +2,7 @@
   "name": "PaintedUtils",
   "author": "PaintedThornStudios",
   "description": "Utilities for mods by PaintedThornStudios",
-  "version_number": "1.0.0",
+  "version_number": "1.1.0",
   "dependencies": [
     "Zehs-REPOLib-2.0.1",
     "DaXcess-FixPluginTypesSerialization-1.0.0"

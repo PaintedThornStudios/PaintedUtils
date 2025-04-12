@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>PaintedUtils</AssemblyName>
     <Description>Utility Mod for REPO</Description>
-    <Version>1.0.1</Version>
+    <Version>1.1.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Authors>PaintedThornStudios</Authors>
@@ -15,7 +15,7 @@
     
     <!-- NuGet Package Properties -->
     <PackageId>PaintedUtils</PackageId>
-    <PackageVersion>1.0.1</PackageVersion>
+    <PackageVersion>1.1.0</PackageVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/yourusername/PaintedUtils</PackageProjectUrl>
     <RepositoryUrl>https://github.com/yourusername/PaintedUtils.git</RepositoryUrl>

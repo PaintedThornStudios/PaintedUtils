@@ -21,7 +21,7 @@ namespace PaintedUtils
     /// - ItemBattery: Battery power system for electronic items
     /// </summary>
     /// 
-    [BepInPlugin("PaintedThornStudios.PaintedUtils", "PaintedUtils", "1.0")]
+    [BepInPlugin("PaintedThornStudios.PaintedUtils", "PaintedUtils", "1.1.0")]
     [BepInDependency(REPOLib.MyPluginInfo.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
     public class PaintedUtils : BaseUnityPlugin
     {
