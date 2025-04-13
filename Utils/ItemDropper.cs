@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using REPOLib.Modules;
+using REPOLib;
 namespace PaintedUtils
 {
     public class ItemDropper : MonoBehaviour
@@ -259,6 +260,12 @@ namespace PaintedUtils
 
         private static void SpawnPrefabStatic(ItemDrop drop, Vector3 position, float forceStrength)
         {
+            // Only the host should spawn network objects
+            if (!SemiFunc.IsMasterClientOrSingleplayer())
+            {
+                return;
+            }
+
             GameObject spawned = null;
 
             switch (drop.prefabType)
@@ -384,6 +391,12 @@ namespace PaintedUtils
 
         private void SpawnPrefab(ItemDrop drop, Vector3 position)
         {
+            // Only the host should spawn network objects
+            if (!SemiFunc.IsMasterClientOrSingleplayer())
+            {
+                return;
+            }
+
             GameObject spawned = null;
 
             switch (drop.prefabType)
