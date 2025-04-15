@@ -13,10 +13,10 @@ namespace PaintedUtils
         public Color eyeColor = Color.white;
         [Tooltip("Color of the pupils during TTS")]
         public Color pupilColor = Color.black;
-        [Tooltip("If true, eyes will cycle through rainbow colors")]
-        public bool eyeColorRGB = false;
-        [Tooltip("If true, pupils will cycle through rainbow colors")]
-        public bool pupilColorRGB = false;
+        // [Tooltip("If true, eyes will cycle through rainbow colors")]
+        // public bool eyeColorRGB = false;
+        // [Tooltip("If true, pupils will cycle through rainbow colors")]
+        // public bool pupilColorRGB = false;
         [Range(0.1f, 5f)]
         [Tooltip("Size of the pupils during TTS")]
         public float pupilSize = 3f;

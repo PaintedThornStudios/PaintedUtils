@@ -71,26 +71,12 @@ namespace PaintedUtils
         private PhysGrabObjectImpactDetector? impactDetector;
         private bool isPlaying;
         private float nextMessageTime;
-        private int currentEyeStateId = -1;
 
         private Coroutine fadeCoroutine;
         private int currentTrackIndex = 0;
         private Coroutine rgbCycleCoroutine;
         private float rgbCycleSpeed = 0.5f; // Speed of RGB cycling in seconds per cycle
 
-        internal class EyeStateData
-        {
-            public float Timer;
-            public bool IsSpeaking;
-            public bool IsInitialized;
-        }
-
-        internal static class CustomEyeStates
-        {
-            public static Dictionary<int, PlayerHealth.EyeOverrideState> TrackEyeStates = new();
-            public static Dictionary<PlayerHealth.EyeOverrideState, (Color eyeColor, Color pupilColor, Color lightColor, float lightIntensity)> CustomStates = new();
-            public static Dictionary<int, EyeStateData> TrackData = new();
-        }
 
         // Messages organized by track
         private string[][] trackMessages = new string[][]
@@ -139,14 +125,14 @@ namespace PaintedUtils
                 main.playOnAwake = false;
                 main.loop = true;
                 musicParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                Debug.Log("Music particles initialized");
+                // Debug.Log("Music particles initialized");
             }
             if (impactParticles != null)
             {
                 var main = impactParticles.main;
                 main.playOnAwake = false;
                 impactParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                Debug.Log("Impact particles initialized");
+                // Debug.Log("Impact particles initialized");
             }
 
             // Initialize light but keep it off
@@ -156,28 +142,8 @@ namespace PaintedUtils
             }
 
             isPlaying = false;
-            RegisterCustomEyeStates();
         }
 
-        private void RegisterCustomEyeStates()
-        {
-            if (trackData == null) return;
-
-            for (int i = 0; i < trackData.tracks.Count; i++)
-            {
-                var track = trackData.GetTrackData(i);
-                if (track == null) continue;
-
-                var eyeState = (PlayerHealth.EyeOverrideState)(100 + i);
-                CustomEyeStates.TrackEyeStates[i] = eyeState;
-                CustomEyeStates.CustomStates[eyeState] = (
-                    track.eyeColor,
-                    track.pupilColor,
-                    track.eyeColor,
-                    track.lightIntensity
-                );
-            }
-        }
 
         private void OnDestroy()
         {
@@ -190,18 +156,8 @@ namespace PaintedUtils
 
         private void ClearCurrentEyeState()
         {
-            if (currentEyeStateId != -1)
-            {
-                if (CustomEyeStates.TrackData.TryGetValue(currentEyeStateId, out var data))
-                {
-                    if (data.IsInitialized)
-                    {
-                        ChatManager.instance.playerAvatar?.playerHealth?.EyeMaterialOverride(PlayerHealth.EyeOverrideState.None, 0.25f, 0);
-                    }
-                    CustomEyeStates.TrackData.Remove(currentEyeStateId);
-                }
-                currentEyeStateId = -1;
-            }
+            string localPlayerName = ChatManager.instance.playerAvatar.playerName;
+            EyeStateManager.Instance.ClearEyeState(localPlayerName);
         }
 
         private void Update()
@@ -246,7 +202,7 @@ namespace PaintedUtils
 
         private void SendTrackMessage()
         {
-            if (trackData == null || ChatManager.instance == null || ChatManager.instance.StateIsPossessed()) return;
+            if (trackData == null || ChatManager.instance == null || ChatManager.instance.StateIsPossessed() || physGrabObject == null || !physGrabObject.heldByLocalPlayer) return;
             
             // Only send messages if we're the one holding it
             if (physGrabObject == null || !physGrabObject.grabbed) return;
@@ -260,24 +216,35 @@ namespace PaintedUtils
             // Calculate message duration based on message length
             float messageDuration = trackData.GetMessageDuration(currentTrack, message);
 
-            // Clear previous eye state
-            ClearCurrentEyeState();
+            Color eyeColor = new Color(track.eyeColor.r, track.eyeColor.g, track.eyeColor.b, 1f);
+            Color pupilColor = new Color(track.pupilColor.r, track.pupilColor.g, track.pupilColor.b, 1f);
+            eyeColor.a = 1f;
+            pupilColor.a = 1f;
+            // Debug.Log($"Eye Color: {eyeColor} | Pupil Color: {pupilColor} | Pupil Size: {track.pupilSize}");
 
-            // Set up new eye state
-            if (CustomEyeStates.TrackEyeStates.TryGetValue(currentTrack, out var eyeState))
+            string localPlayerName = ChatManager.instance.playerAvatar.playerName;
+
+            EyeStateManager.Instance.SetEyeState(
+                localPlayerName,
+                eyeColor,
+                pupilColor,
+                track.lightIntensity,
+                duration: messageDuration + 1f,
+                pupilSize: track.pupilSize
+                // eyeColorRGB: track.eyeColorRGB,
+                // pupilColorRGB: track.pupilColorRGB
+            );
+
+            if (SemiFunc.IsMultiplayer())
             {
-                CustomEyeStates.TrackData[currentTrack] = new EyeStateData
-                {
-                    Timer = Mathf.Max(messageDuration + 1.0f, 2f),
-                    IsSpeaking = true,
-                    IsInitialized = false
-                };
-
-                StartCoroutine(InitializeSpeakingState(currentTrack));
+            photonView.RPC("SyncSpeakerEyeEffect", RpcTarget.Others,
+                localPlayerName,
+                new float[] { eyeColor.r, eyeColor.g, eyeColor.b, eyeColor.a },
+                new float[] { pupilColor.r, pupilColor.g, pupilColor.b, pupilColor.a },
+                track.lightIntensity,
+                track.pupilSize,
+                messageDuration + 1f);
             }
-
-            // Override pupil size
-            ChatManager.instance.playerAvatar.OverridePupilSize(track.pupilSize, 4, 1f, 1f, 15f, 0.3f);
 
             // Find closest player for targeting
             string playerName = "friend";
@@ -311,20 +278,11 @@ namespace PaintedUtils
 
             // Start TTS schedule and send message
             ChatManager.instance.PossessChatScheduleStart(10);
-            ChatManager.instance.PossessChat((ChatManager.PossessChatID)1001, message, messageDuration, track.eyeColor, 0f, false, 0, null);
+            ChatManager.instance.PossessChat((ChatManager.PossessChatID)1001, message, messageDuration, eyeColor, 0f, false, 0, null);
             ChatManager.instance.PossessChatScheduleEnd();
 
             // Update next message time
             nextMessageTime = Time.time + trackData.messageFrequency + Random.Range(-trackData.messageRandomness, trackData.messageRandomness);
-        }
-
-        private IEnumerator InitializeSpeakingState(int trackIndex)
-        {
-            yield return new WaitForSeconds(0.5f);
-            if (CustomEyeStates.TrackData.TryGetValue(trackIndex, out var data))
-            {
-                data.IsInitialized = true;
-            }
         }
 
         private void OnHeavyImpact()
@@ -428,7 +386,7 @@ namespace PaintedUtils
         {
             if (isPlaying)
             {
-                Debug.Log("Music is already playing");
+                // Debug.Log("Music is already playing");
                 return;
             }
             if (trackData == null)
@@ -436,14 +394,18 @@ namespace PaintedUtils
                 Debug.LogError("Cannot start music: trackData is null");
                 return;
             }
-            Debug.Log($"Starting music with track index {currentTrackIndex}");
+            // Debug.Log($"Starting music with track index {currentTrackIndex}");
             isPlaying = true;
             
             // Play power on sound if we have one
             if (powerOnSound?.clip != null)
             {
                 AudioSource.PlayClipAtPoint(powerOnSound.clip, transform.position, powerOnSound.volume);
-                Debug.Log("Power on sound played");
+                if (SemiFunc.IsMultiplayer())
+                {
+                    photonView.RPC("PlayPowerOnSoundRPC", RpcTarget.Others);
+                }
+                // Debug.Log("Power on sound played");
             }
 
             // Start first track with delay
@@ -642,7 +604,7 @@ namespace PaintedUtils
                 return;
             }
 
-            Debug.Log($"Setting up audio for track {index}: clip={track.sound.clip.name}, volume={volume * musicVolumeMultiplier}");
+            // Debug.Log($"Setting up audio for track {index}: clip={track.sound.clip.name}, volume={volume * musicVolumeMultiplier}");
             
             // Configure audio source
             audioSource.clip = track.sound.clip;
@@ -667,14 +629,14 @@ namespace PaintedUtils
                 
                 track.trackParticles.gameObject.SetActive(true);
                 track.trackParticles.Play();
-                Debug.Log("Track-specific particles enabled and playing");
+                // Debug.Log("Track-specific particles enabled and playing");
             }
             else if (musicParticles != null)
             {
                 // Use default music particles
                 musicParticles.gameObject.SetActive(true);
                 musicParticles.Play();
-                Debug.Log("Default music particles enabled and playing");
+                // Debug.Log("Default music particles enabled and playing");
             }
 
             // Enable and set up light
@@ -683,7 +645,7 @@ namespace PaintedUtils
                 speakerLight.gameObject.SetActive(true);
                 speakerLight.color = track.lightColor;
                 speakerLight.intensity = 0f; // Start at 0, will lerp to track's light intensity
-                Debug.Log($"Speaker light enabled with color {track.lightColor} and target intensity {track.lightIntensity}");
+                // Debug.Log($"Speaker light enabled with color {track.lightColor} and target intensity {track.lightIntensity}");
 
                 // Start RGB cycling if enabled
                 if (track.lightColorRGB)
@@ -743,151 +705,29 @@ namespace PaintedUtils
             }
         }
 
-        [HarmonyPatch(typeof(PlayerHealth), nameof(PlayerHealth.EyeMaterialSetup))]
-        private class EyeMaterialSetupPatch
+        [PunRPC]
+        private void PlayPowerOnSoundRPC()
         {
-            private static void Postfix(PlayerHealth __instance)
+            if (powerOnSound?.clip != null)
             {
-                if (CustomEyeStates.CustomStates.TryGetValue(__instance.overrideEyeState, out var customState))
-                {
-                    __instance.overrideEyeMaterialColor = customState.eyeColor;
-                    __instance.overridePupilMaterialColor = customState.pupilColor;
-                    __instance.overrideEyeLightColor = customState.lightColor;
-                    __instance.overrideEyeLightIntensity = customState.lightIntensity;
-                }
+                AudioSource.PlayClipAtPoint(powerOnSound.clip, transform.position, powerOnSound.volume);
             }
         }
 
-        [HarmonyPatch(typeof(ChatManager), nameof(ChatManager.StatePossessed))]
-        private class ChatManagerStatePossessedPatch
+        [PunRPC]
+        private void SyncSpeakerEyeEffect(
+            string playerName,
+            float[] eyeRGBA,
+            float[] pupilRGBA,
+            float intensity,
+            float pupilSize,
+            float duration)
         {
-            public static void Postfix(ChatManager __instance)
-            {
-                if (__instance.playerAvatar == null) return;
+            Color eye = new Color(eyeRGBA[0], eyeRGBA[1], eyeRGBA[2], eyeRGBA[3]);
+            Color pupil = new Color(pupilRGBA[0], pupilRGBA[1], pupilRGBA[2], pupilRGBA[3]);
 
-                // Only apply eye state if the player is holding a powered-on speaker
-                bool isHoldingSpeaker = false;
-                if (PhysGrabber.instance != null && PhysGrabber.instance.grabbed)
-                {
-                    var handler = PhysGrabber.instance.grabbedPhysGrabObject?.GetComponent<MusicalItemHandler>();
-                    isHoldingSpeaker = handler != null && handler.isPlaying;
-                }
-
-                if (isHoldingSpeaker)
-                {
-                    foreach (var kvp in CustomEyeStates.TrackData)
-                    {
-                        int index = kvp.Key;
-                        var data = kvp.Value;
-                        if (data.IsSpeaking && CustomEyeStates.TrackEyeStates.TryGetValue(index, out var eyeState))
-                        {
-                            __instance.playerAvatar.playerHealth.EyeMaterialOverride(eyeState, 0.25f, 0);
-                        }
-                    }
-                }
-            }
+            EyeStateManager.Instance.SetEyeState(playerName, eye, pupil, intensity, duration, pupilSize: pupilSize);
         }
 
-        [HarmonyPatch(typeof(ChatManager), nameof(ChatManager.PossessChatCustomLogic))]
-        private class ChatManagerPossessChatCustomLogicPatch
-        {
-            public static bool Prefix(ChatManager __instance)
-            {
-                if (__instance.playerAvatar == null) return true;
-
-                // Only apply eye state if the player is holding a powered-on speaker
-                bool isHoldingSpeaker = false;
-                if (PhysGrabber.instance != null && PhysGrabber.instance.grabbed)
-                {
-                    var handler = PhysGrabber.instance.grabbedPhysGrabObject?.GetComponent<MusicalItemHandler>();
-                    isHoldingSpeaker = handler != null && handler.isPlaying;
-                }
-
-                if (isHoldingSpeaker)
-                {
-                    foreach (var kvp in CustomEyeStates.TrackData)
-                    {
-                        int index = kvp.Key;
-                        var data = kvp.Value;
-                        if (data.IsSpeaking && CustomEyeStates.TrackEyeStates.TryGetValue(index, out var eyeState))
-                        {
-                            __instance.playerAvatar.playerHealth.EyeMaterialOverride(eyeState, 0.25f, 0);
-                        }
-                    }
-                }
-                return true;
-            }
-
-            public static void Postfix(ChatManager __instance)
-            {
-                if (__instance.playerAvatar?.voiceChat?.ttsVoice?.isSpeaking == true)
-                {
-                    foreach (var kvp in CustomEyeStates.TrackData)
-                    {
-                        int index = kvp.Key;
-                        var data = kvp.Value;
-
-                        if (data.IsInitialized && !data.IsSpeaking)
-                        {
-                            data.IsSpeaking = true;
-                        }
-
-                        data.Timer = 0.2f;
-                    }
-                }
-                else
-                {
-                    // Reset eye state when TTS is done
-                    foreach (var kvp in CustomEyeStates.TrackData)
-                    {
-                        int index = kvp.Key;
-                        var data = kvp.Value;
-                        
-                        if (data.IsSpeaking)
-                        {
-                            data.IsSpeaking = false;
-                            data.Timer = 0f;
-                            __instance.playerAvatar?.playerHealth?.EyeMaterialOverride(PlayerHealth.EyeOverrideState.None, 0.25f, 0);
-                        }
-                    }
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(ChatManager), nameof(ChatManager.Update))]
-        private class ChatManagerUpdatePatch
-        {
-            private static void Postfix(ChatManager __instance)
-            {
-                if (__instance.playerAvatar == null) return;
-
-                // Only apply eye state if the player is holding a powered-on speaker
-                bool isHoldingSpeaker = false;
-                if (PhysGrabber.instance != null && PhysGrabber.instance.grabbed)
-                {
-                    var handler = PhysGrabber.instance.grabbedPhysGrabObject?.GetComponent<MusicalItemHandler>();
-                    isHoldingSpeaker = handler != null && handler.isPlaying;
-                }
-
-                foreach (var kvp in CustomEyeStates.TrackData.ToList())
-                {
-                    int index = kvp.Key;
-                    var data = kvp.Value;
-
-                    if (data.Timer > 0f)
-                        data.Timer -= Time.deltaTime;
-
-                    if (data.Timer <= 0f)
-                    {
-                        if (data.IsInitialized && isHoldingSpeaker)
-                        {
-                            __instance.playerAvatar.playerHealth.EyeMaterialOverride(PlayerHealth.EyeOverrideState.None, 0.25f, 0);
-                        }
-
-                        CustomEyeStates.TrackData.Remove(index);
-                    }
-                }
-            }
-        }
     }
 } 
