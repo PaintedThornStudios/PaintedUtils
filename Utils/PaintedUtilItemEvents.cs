@@ -8,12 +8,15 @@ using REPOLib.Modules;
 namespace PaintedUtils
 {
     [System.Serializable]
+    public class PlayerEvent : UnityEvent<PhysGrabber> { }
+
+    [System.Serializable]
     public class TimerEvent
     {
         public string name;
         public float interval = 1f;
         public bool onlyWhenGrabbed = false;
-        public UnityEvent onTimer;
+        public PlayerEvent onTimer;
     }
 
     [System.Serializable]
@@ -23,14 +26,14 @@ namespace PaintedUtils
         public bool useCustomKey = false;
         public KeyCode customKey = KeyCode.E;
         public bool canUseWhenNotGrabbed = false;
-        public UnityEvent onUse;
+        public PlayerEvent onUse;
     }
 
     public class PaintedUtilItemEvents : MonoBehaviour
     {
         [Header("Grab Events")]
-        public UnityEvent onGrabbed;
-        public UnityEvent onReleased;
+        public PlayerEvent onGrabbed;
+        public PlayerEvent onReleased;
 
         [Header("Use Events")]
         public List<UseEvent> useEvents = new List<UseEvent>();
@@ -63,9 +66,13 @@ namespace PaintedUtils
                 wasGrabbed = grabObject.grabbedLocal;
                 
                 if (wasGrabbed)
-                    onGrabbed.Invoke();
+                {
+                    onGrabbed.Invoke(FindObjectOfType<PhysGrabber>());
+                }
                 else
-                    onReleased.Invoke();
+                {
+                    onReleased.Invoke(FindObjectOfType<PhysGrabber>());
+                }
             }
 
             // Handle use events
@@ -80,12 +87,12 @@ namespace PaintedUtils
                     // If grabbed, always allow use
                     if (wasGrabbed)
                     {
-                        useEvent.onUse.Invoke();
+                        useEvent.onUse.Invoke(FindObjectOfType<PhysGrabber>());
                     }
                     // If not grabbed but canUseWhenNotGrabbed is true, check if player is looking at and in range
                     else if (useEvent.canUseWhenNotGrabbed && IsPlayerLookingAtAndInRange())
                     {
-                        useEvent.onUse.Invoke();
+                        useEvent.onUse.Invoke(FindObjectOfType<PhysGrabber>());
                     }
                 }
             }
@@ -125,7 +132,7 @@ namespace PaintedUtils
                 
                 if (!timerEvent.onlyWhenGrabbed || wasGrabbed)
                 {
-                    timerEvent.onTimer.Invoke();
+                    timerEvent.onTimer.Invoke(FindObjectOfType<PhysGrabber>());
                 }
             }
         }
